@@ -1,10 +1,12 @@
 # -*- coding: UTF-8 -*-
-import scrapy
+from scrapy.selector import Selector
+from scrapy.spider import Spider
+from tutorial.items import DmozItem
 
 __author__ = 'inso'
 
 
-class DmozSpider(scrapy.spiders.Spider):
+class DmozSpider(Spider):
     name = "dmoz"
     allowed_domains = ["dmoz.org"]
     start_urls = [
@@ -13,6 +15,17 @@ class DmozSpider(scrapy.spiders.Spider):
     ]
 
     def parse(self, response):
-        filename = response.url.split("/")[-2]
-        with open(filename, 'wb') as f:
-            f.write(response.body)
+        # filename = response.url.split("/")[-2]
+        # with open(filename, 'wb') as f:
+        #     f.write(response.body)
+        sel = Selector(response)
+        sites =sel.xpath('//ul/li')
+        items = []
+        for site in sites:
+            item = DmozItem()
+            item['title'] = site.xpath('a/text()').extract()
+            item['link'] = site.xpath('a/@href').extract()
+            item['desc'] = site.xpath('text()').extract()
+            items.append(item)
+        return items
+
